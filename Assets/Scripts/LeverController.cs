@@ -1,22 +1,28 @@
 using UnityEngine;
 
+/// <summary>
+/// Controls interactive levers that activate doors or elevators when the player presses 'E' or shoots them.
+/// </summary>
 public class LeverController : MonoBehaviour
 {
-    public ElevatorController elevator;  // Boþ býrakabilirsin
-    public DoorController door;           // Kapý baðla
-    private bool playerInRange = false;
+    [Tooltip("Optional connected elevator controller to trigger.")]
+    public ElevatorController elevator;
 
-    private bool isFlipped = false; // Lever yön durumu
+    [Tooltip("Optional connected door controller to trigger.")]
+    public DoorController door;
+
+    private bool playerInRange = false;
+    private bool isFlipped = false;
     private SpriteRenderer spriteRenderer;
 
-    void Start()
+    private void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    void Update()
+    private void Update()
     {
-        // Oyuncu yakýndaysa ve E'ye basarsa
+        // Activate when player is in range and presses E
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
             ActivateLever();
@@ -30,8 +36,8 @@ public class LeverController : MonoBehaviour
             playerInRange = true;
         }
 
-        // Eðer mermi (Madde) çarparsa anýnda çalýþsýn
-        if (collision.CompareTag("Madde"))
+        // Also activates when hit by a bullet/projectile
+        if (collision.CompareTag("Madde") || collision.CompareTag("Bullet"))
         {
             ActivateLever();
         }
@@ -45,6 +51,9 @@ public class LeverController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Flips the lever visual state and triggers connected mechanisms.
+    /// </summary>
     private void ActivateLever()
     {
         if (elevator != null)
@@ -53,7 +62,7 @@ public class LeverController : MonoBehaviour
         if (door != null)
             door.ToggleDoor();
 
-        // Lever yönünü deðiþtir
+        // Flip lever sprite visual direction
         isFlipped = !isFlipped;
         if (spriteRenderer != null)
         {
@@ -61,12 +70,9 @@ public class LeverController : MonoBehaviour
         }
         else
         {
-            // Eðer spriteRenderer yoksa ölçekle çevir
             Vector3 scale = transform.localScale;
             scale.x *= -1;
             transform.localScale = scale;
         }
-
-        Debug.Log("Lever çalýþtý ve yön deðiþti!");
     }
 }

@@ -1,22 +1,30 @@
 using UnityEngine;
 
+/// <summary>
+/// Controls rotating doors that open and close upon lever or trigger activation.
+/// </summary>
 public class DoorController : MonoBehaviour
 {
-    public float openAngle = 90f;     // Kaç derece açýlacak
-    public float speed = 90f;         // Derece/saniye
+    [Tooltip("Target rotation angle when open (in degrees).")]
+    public float openAngle = 90f;
+
+    [Tooltip("Rotation speed in degrees per second.")]
+    public float speed = 90f;
+
+    [Tooltip("Whether the door is currently open.")]
     public bool isOpen = false;
 
     private Quaternion closedRotation;
     private Quaternion openRotation;
     private bool isMoving = false;
 
-    void Start()
+    private void Start()
     {
         closedRotation = transform.rotation;
         openRotation = Quaternion.Euler(0, 0, openAngle) * closedRotation;
     }
 
-    void Update()
+    private void Update()
     {
         if (isMoving)
         {
@@ -31,6 +39,9 @@ public class DoorController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Toggles the door between opened and closed states.
+    /// </summary>
     public void ToggleDoor()
     {
         if (!isMoving)

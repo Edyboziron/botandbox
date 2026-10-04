@@ -1,73 +1,100 @@
 using UnityEngine;
 
+/// <summary>
+/// Controls the player character (Bot): 2D movement, jump, wall-sliding, shooting, and audio effects.
+/// </summary>
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
+    [Tooltip("Horizontal movement speed.")]
     public float moveSpeed = 5f;
+
+    [Tooltip("Upward velocity applied upon jumping.")]
     public float jumpForce = 10f;
+
+    [Tooltip("Transform used to check if the player is on the ground.")]
     public Transform groundCheck;
+
+    [Tooltip("Transform used to check if the player is touching a wall.")]
     public Transform wallCheck;
+
+    [Tooltip("Layer mask representing ground surfaces.")]
     public LayerMask groundLayer;
+
+    [Tooltip("Radius around check points to detect ground or wall collisions.")]
     public float checkRadius = 0.2f;
 
-    private Rigidbody2D rb;
-    private bool isGrounded;
-    private bool isTouchingWall;
-    private bool isWallSliding;
-
+    [Tooltip("Terminal downward speed while sliding down a wall.")]
     public float wallSlideSpeed = 2f;
 
-    private float moveInput;
-    private bool facingRight = true;
-
     [Header("Shooting")]
+    [Tooltip("Prefab for spawned bullets.")]
     public GameObject bulletPrefab;
+
+    [Tooltip("Spawn position and orientation for bullets.")]
     public Transform firePoint;
+
+    [Tooltip("Initial bullet launch speed.")]
     public float bulletSpeed = 10f;
 
     [Header("Sound")]
-    public AudioClip shootSound;      // Inspector’dan atayacağın ses
-    private AudioSource audioSource;  // ses çalmak için kaynak
+    [Tooltip("Sound clip played when shooting.")]
+    public AudioClip shootSound;
 
-    void Start()
+    private Rigidbody2D rb;
+    private AudioSource audioSource;
+    private bool isGrounded;
+    private bool isTouchingWall;
+    private bool isWallSliding;
+    private float moveInput;
+    private bool facingRight = true;
+
+    private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
 
-        // Eğer sahnede AudioSource yoksa otomatik eklesin
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
     }
 
-    void Update()
+    private void Update()
     {
         moveInput = Input.GetAxisRaw("Horizontal");
 
+        // Jump if grounded or touching a wall
         if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || isTouchingWall))
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
 
+        // Flip facing direction based on input
         if (!facingRight && moveInput > 0)
+        {
             Flip();
+        }
         else if (facingRight && moveInput < 0)
+        {
             Flip();
+        }
 
+        // Shoot projectile
         if (Input.GetMouseButtonDown(0))
         {
             Shoot();
         }
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, checkRadius, groundLayer);
 
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
 
+        // Wall sliding mechanics
         if (isTouchingWall && !isGrounded && moveInput != 0)
         {
             isWallSliding = true;
@@ -79,7 +106,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Flip()
+    private void Flip()
     {
         facingRight = !facingRight;
         Vector3 scaler = transform.localScale;
@@ -87,8 +114,10 @@ public class PlayerController : MonoBehaviour
         transform.localScale = scaler;
     }
 
-    void Shoot()
+    private void Shoot()
     {
+        if (bulletPrefab == null || firePoint == null) return;
+
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
         Rigidbody2D rbBullet = bullet.GetComponent<Rigidbody2D>();
@@ -98,7 +127,7 @@ public class PlayerController : MonoBehaviour
             rbBullet.linearVelocity = direction * bulletSpeed;
         }
 
-        // 🔊 Ateş sesi çalsın
+        // Play shoot sound effect
         if (shootSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(shootSound);

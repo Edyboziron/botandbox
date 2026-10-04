@@ -1,52 +1,42 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Connects a UI Slider to MusicManager for real-time volume adjustment.
+/// </summary>
 public class MusicVolumeSlider : MonoBehaviour
 {
     [Header("UI Components")]
+    [Tooltip("Volume control slider.")]
     public Slider volumeSlider;
+
+    [Tooltip("Optional text element to display percentage (e.g., 75%).")]
+    public Text volumeText;
 
     private void Start()
     {
         if (MusicManager.Instance != null)
         {
-            // Slider'ý MusicManager'a kaydet
             MusicManager.Instance.RegisterSlider(this);
 
-            // Kayýtlý sesi slider'a uygula
-            volumeSlider.value = MusicManager.Instance.GetVolume();
-
-            // Deðer deðiþtiðinde ses seviyesini güncelle
-            volumeSlider.onValueChanged.AddListener(OnSliderValueChanged);
+            if (volumeSlider != null)
+            {
+                volumeSlider.value = MusicManager.Instance.GetVolume();
+                volumeSlider.onValueChanged.AddListener(OnSliderValueChanged);
+            }
         }
         else
         {
-            Debug.LogError("MusicManager.Instance null!");
+            Debug.LogWarning("MusicManager.Instance is null. Ensure MusicManager exists in the scene.");
         }
 
-        // Slider bileþeninin tam sayý olmamasý için kontrol
         if (volumeSlider != null && volumeSlider.wholeNumbers)
         {
-            Debug.LogWarning(gameObject.name + " üzerindeki Slider bileþeninin 'Whole Numbers' seçeneði iþaretli. Ses seviyesi kontrolü için bu seçeneði kaldýrýn.");
+            Debug.LogWarning(gameObject.name + " slider has 'Whole Numbers' enabled. Disable it for smooth volume control.");
         }
     }
 
     private void OnSliderValueChanged(float value)
-    {
-        // MusicManager üzerinden sesi ayarla
-        MusicManager.Instance?.SetVolume(value);
-    }
-
-    public void UpdateSliderUI()
-    {
-        if (MusicManager.Instance != null && volumeSlider != null)
-        {
-            volumeSlider.value = MusicManager.Instance.GetVolume();
-        }
-    }
-    public Text volumeText; // veya TMP_Text
-
-    private void On_Slider_Value_Changed(float value)
     {
         MusicManager.Instance?.SetVolume(value);
 
@@ -56,4 +46,20 @@ public class MusicVolumeSlider : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the slider position and text from current MusicManager state.
+    /// </summary>
+    public void UpdateSliderUI()
+    {
+        if (MusicManager.Instance != null && volumeSlider != null)
+        {
+            float vol = MusicManager.Instance.GetVolume();
+            volumeSlider.value = vol;
+
+            if (volumeText != null)
+            {
+                volumeText.text = Mathf.RoundToInt(vol * 100) + "%";
+            }
+        }
+    }
 }

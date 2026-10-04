@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Handles UI buttons for menu transitions and quitting the game.
+/// </summary>
 public class MenuManager : MonoBehaviour
 {
     public void LoadScene0()
@@ -15,7 +18,7 @@ public class MenuManager : MonoBehaviour
 
     public void QuitGame()
     {
-        Debug.Log("Oyun kapatýlýyor...");
+        Debug.Log("Quitting game...");
         Application.Quit();
     }
 }

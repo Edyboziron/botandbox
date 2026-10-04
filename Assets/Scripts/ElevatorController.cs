@@ -1,39 +1,49 @@
 using UnityEngine;
 
+/// <summary>
+/// Controls moving platforms / elevators that move between their start position and target height.
+/// </summary>
 public class ElevatorController : MonoBehaviour
 {
+    [Tooltip("Movement speed of the elevator.")]
     public float moveSpeed = 2f;
-    public float targetHeight = 5f; // Asansörün çýkacaðý yükseklik
+
+    [Tooltip("Target elevation offset the elevator rises to.")]
+    public float targetHeight = 5f;
 
     private Vector3 startPos;
     private Vector3 topPos;
-    private bool goingUp = false;   // Hedef yukarý mý aþaðý mý
-    private bool isMoving = false;  // Þu an hareket ediyor mu
+    private bool goingUp = false;
+    private bool isMoving = false;
 
-    void Start()
+    private void Start()
     {
         startPos = transform.position;
         topPos = new Vector3(startPos.x, startPos.y + targetHeight, startPos.z);
     }
 
-    void Update()
+    private void Update()
     {
         if (isMoving)
         {
             Vector3 target = goingUp ? topPos : startPos;
             transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
 
-            // Hedefe ulaþtýðýnda durdur
             if (Vector3.Distance(transform.position, target) < 0.01f)
+            {
                 isMoving = false;
+            }
         }
     }
 
+    /// <summary>
+    /// Toggles the elevator moving direction (up or down).
+    /// </summary>
     public void ToggleElevator()
     {
-        if (!isMoving) // Harekette deðilken tekrar çaðrýlabilir
+        if (!isMoving)
         {
-            goingUp = !goingUp; // Yönü deðiþtir
+            goingUp = !goingUp;
             isMoving = true;
         }
     }

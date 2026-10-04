@@ -1,14 +1,22 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Basic enemy AI that detects the player within range and pursues them.
+/// Colliding with the player defeats them and resets the level.
+/// </summary>
 public class Enemy : MonoBehaviour
 {
+    [Tooltip("Movement speed when pursuing the player.")]
     public float speed = 3f;
+
+    [Tooltip("Detection radius within which the enemy starts pursuing.")]
     public float followRange = 10f;
+
     private Transform player;
     private bool isFollowing = false;
 
-    void Start()
+    private void Start()
     {
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null)
@@ -17,27 +25,16 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Player not found. Make sure your player object has the 'Player' tag.");
+            Debug.LogWarning("Player not found. Make sure the player object has the 'Player' tag.");
         }
     }
 
-    void Update()
+    private void Update()
     {
-        if (player == null)
-        {
-            return;
-        }
+        if (player == null) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
-
-        if (distanceToPlayer <= followRange)
-        {
-            isFollowing = true;
-        }
-        else
-        {
-            isFollowing = false;
-        }
+        isFollowing = distanceToPlayer <= followRange;
 
         if (isFollowing)
         {
@@ -45,14 +42,14 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
             Destroy(collision.gameObject);
 
-            // Sahneyi Build Settings'deki 2. sahneye geçir (index 1)
-            SceneManager.LoadScene(2);
+            // Reload the current level upon player death
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }
 }

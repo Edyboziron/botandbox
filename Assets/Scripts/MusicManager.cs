@@ -1,18 +1,19 @@
 using UnityEngine;
 
+/// <summary>
+/// Singleton manager for background music playback, volume settings, and persistence across scenes.
+/// </summary>
 public class MusicManager : MonoBehaviour
 {
-    public static MusicManager Instance;
+    public static MusicManager Instance { get; private set; }
 
     private AudioSource audioSource;
     private bool isMuted = false;
     private float volume = 1f;
-
     private MusicVolumeSlider slider;
+    private float lastVolume = 1f;
 
-    private float lastVolume = 1f; // en son volume deðeri, sessize alýnmadan önceki
-
-    void Awake()
+    private void Awake()
     {
         if (Instance == null)
         {
@@ -24,10 +25,13 @@ public class MusicManager : MonoBehaviour
             isMuted = PlayerPrefs.GetInt("musicMuted", 0) == 1;
             volume = PlayerPrefs.GetFloat("musicVolume", 1f);
 
-            audioSource.volume = volume;
-            audioSource.mute = isMuted;
-            audioSource.loop = true;
-            audioSource.Play();
+            if (audioSource != null)
+            {
+                audioSource.volume = volume;
+                audioSource.mute = isMuted;
+                audioSource.loop = true;
+                audioSource.Play();
+            }
         }
         else
         {
@@ -35,37 +39,42 @@ public class MusicManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Toggles music between muted and previous volume level.
+    /// </summary>
     public void ToggleMusic()
     {
         if (volume > 0f)
         {
-            lastVolume = volume; // Mevcut deðeri sakla
-            SetVolume(0f);       // Sessize al
+            lastVolume = volume;
+            SetVolume(0f);
         }
         else
         {
-            SetVolume(lastVolume); // Önceki deðere dön
+            SetVolume(lastVolume > 0f ? lastVolume : 1f);
         }
 
         slider?.UpdateSliderUI();
-        Debug.Log("Ses Togglelandý. Yeni Volume: " + volume);
     }
 
+    /// <summary>
+    /// Updates music volume and persists to PlayerPrefs.
+    /// </summary>
     public void SetVolume(float newVolume)
     {
         volume = Mathf.Clamp01(newVolume);
-        audioSource.volume = volume; // Doðrudan ses seviyesini ayarla
-
-        // Mute durumunu sadece ses seviyesi 0 olduðunda güncelle
-        isMuted = volume <= 0f;
-        audioSource.mute = isMuted; // AudioSource'un mute durumunu da güncelle
+        if (audioSource != null)
+        {
+            audioSource.volume = volume;
+            isMuted = volume <= 0f;
+            audioSource.mute = isMuted;
+        }
 
         PlayerPrefs.SetFloat("musicVolume", volume);
         PlayerPrefs.SetInt("musicMuted", isMuted ? 1 : 0);
         PlayerPrefs.Save();
 
         slider?.UpdateSliderUI();
-        Debug.Log("Ses Seviyesi Ayarlandý: " + volume);
     }
 
     public float GetVolume()
@@ -80,7 +89,10 @@ public class MusicManager : MonoBehaviour
 
     public void RefreshVolume()
     {
-        audioSource.volume = isMuted ? 0f : volume;
+        if (audioSource != null)
+        {
+            audioSource.volume = isMuted ? 0f : volume;
+        }
     }
 
     public void RegisterSlider(MusicVolumeSlider newSlider)
@@ -89,4 +101,3 @@ public class MusicManager : MonoBehaviour
         slider.UpdateSliderUI();
     }
 }
-
